@@ -9,14 +9,14 @@ from typing import Optional
 from aiohttp import web
 
 # ============================================================
-# SOURCES – Updated model IDs (April 2026)
+# SOURCES – Corrected model IDs for April 2026
 # ============================================================
 SOURCES = {
     "cerebras": {
         "name": "Cerebras",
         "url": "https://api.cerebras.ai/v1/chat/completions",
         "api_key": os.environ.get("CEREBRAS_API_KEY", ""),
-        "model": "llama3.1-70b",
+        "model": "llama-3.3-70b",  # CORRECTED
         "speed_tier": 1,
         "uncensored": False,
         "rate_limit": {"requests": 30, "window": 60},
@@ -26,7 +26,7 @@ SOURCES = {
         "name": "Groq",
         "url": "https://api.groq.com/openai/v1/chat/completions",
         "api_key": os.environ.get("GROQ_API_KEY", ""),
-        "model": "llama-3.3-70b-versatile",  # UPDATED
+        "model": "llama-3.3-70b-versatile",
         "speed_tier": 1,
         "uncensored": False,
         "rate_limit": {"requests": 30, "window": 60},
@@ -46,7 +46,7 @@ SOURCES = {
         "name": "Together",
         "url": "https://api.together.xyz/v1/chat/completions",
         "api_key": os.environ.get("TOGETHER_API_KEY", ""),
-        "model": "meta-llama/Llama-3.3-70B-Instruct-Turbo",  # UPDATED
+        "model": "meta-llama/Llama-3.3-70B-Instruct-Turbo",  # CORRECTED
         "speed_tier": 2,
         "uncensored": False,
         "rate_limit": {"requests": 10, "window": 60},
@@ -56,7 +56,7 @@ SOURCES = {
         "name": "OpenRouter",
         "url": "https://openrouter.ai/api/v1/chat/completions",
         "api_key": os.environ.get("OPENROUTER_API_KEY", ""),
-        "model": "meta-llama/llama-3.3-70b-instruct:free",  # UPDATED
+        "model": "meta-llama/llama-3.3-70b-instruct:free",
         "speed_tier": 2,
         "uncensored": False,
         "rate_limit": {"requests": 20, "window": 60},
