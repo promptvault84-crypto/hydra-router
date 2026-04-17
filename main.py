@@ -9,7 +9,7 @@ from typing import Optional
 from aiohttp import web
 
 # ============================================================
-# SOURCES – All your connected AI model providers
+# SOURCES – Updated model IDs (April 2026)
 # ============================================================
 SOURCES = {
     "cerebras": {
@@ -26,7 +26,7 @@ SOURCES = {
         "name": "Groq",
         "url": "https://api.groq.com/openai/v1/chat/completions",
         "api_key": os.environ.get("GROQ_API_KEY", ""),
-        "model": "llama-3.1-70b-versatile",
+        "model": "llama-3.3-70b-versatile",  # UPDATED
         "speed_tier": 1,
         "uncensored": False,
         "rate_limit": {"requests": 30, "window": 60},
@@ -46,7 +46,7 @@ SOURCES = {
         "name": "Together",
         "url": "https://api.together.xyz/v1/chat/completions",
         "api_key": os.environ.get("TOGETHER_API_KEY", ""),
-        "model": "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
+        "model": "meta-llama/Llama-3.3-70B-Instruct-Turbo",  # UPDATED
         "speed_tier": 2,
         "uncensored": False,
         "rate_limit": {"requests": 10, "window": 60},
@@ -56,7 +56,7 @@ SOURCES = {
         "name": "OpenRouter",
         "url": "https://openrouter.ai/api/v1/chat/completions",
         "api_key": os.environ.get("OPENROUTER_API_KEY", ""),
-        "model": "meta-llama/llama-3.1-70b-instruct:free",
+        "model": "meta-llama/llama-3.3-70b-instruct:free",  # UPDATED
         "speed_tier": 2,
         "uncensored": False,
         "rate_limit": {"requests": 20, "window": 60},
@@ -105,7 +105,7 @@ SOURCES = {
 }
 
 # ============================================================
-# Rate Limiting – keep exactly as before
+# Rate Limiting – unchanged
 # ============================================================
 @dataclass
 class RateLimitTracker:
@@ -245,7 +245,7 @@ async def call_horde(messages, max_tokens, temperature):
             return {"success": False, "error": str(e)}
 
 # ============================================================
-# NEW: Manual model selection handler – NO auto‑routing
+# Manual model selection handler – unchanged
 # ============================================================
 async def handle_chat(request):
     data = await request.json()
@@ -254,14 +254,12 @@ async def handle_chat(request):
     max_tokens = data.get("max_tokens", 2048)
     temperature = data.get("temperature", 0.7)
 
-    # 1. Must provide a model_id
     if not model_id:
         return web.json_response({
             "success": False,
             "error": "No model selected. Please choose a model."
         })
 
-    # 2. Model must exist in SOURCES
     if model_id not in SOURCES:
         return web.json_response({
             "success": False,
@@ -275,7 +273,6 @@ async def handle_chat(request):
             "error": f"Model {cfg['name']} is not configured (missing API key)."
         })
 
-    # 3. Try up to 3 times (only for rate‑limit retries)
     max_attempts = 3
     for attempt in range(max_attempts):
         if not rate_tracker.can_use(model_id):
@@ -287,13 +284,11 @@ async def handle_chat(request):
             return web.json_response(result)
 
         if result.get("error") == "rate_limited":
-            # Artificially exhaust the rate limit so can_use stays false
             for _ in range(50):
                 rate_tracker.record_use(model_id)
             await asyncio.sleep(2)
             continue
         else:
-            # Other error (timeout, HTTP error) – fail immediately
             return web.json_response(result)
 
     return web.json_response({
