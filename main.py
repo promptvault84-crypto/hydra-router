@@ -16,7 +16,7 @@ SOURCES = {
         "name": "Cerebras",
         "url": "https://api.cerebras.ai/v1/chat/completions",
         "api_key": os.environ.get("CEREBRAS_API_KEY", ""),
-        "model": "llama-3.3-70b",  # CORRECTED: llama-3.3-70b is the correct model name
+        "model": "llama-3.3-70b",  # CORRECTED: Cerebras model ID[reference:0]
         "speed_tier": 1,
         "uncensored": False,
         "rate_limit": {"requests": 30, "window": 60},
@@ -36,7 +36,7 @@ SOURCES = {
         "name": "SambaNova",
         "url": "https://api.sambanova.ai/v1/chat/completions",
         "api_key": os.environ.get("SAMBANOVA_API_KEY", ""),
-        "model": "Meta-Llama-3.3-70B-Instruct", # CORRECTED: This model replaces the deprecated one
+        "model": "Meta-Llama-3.3-70B-Instruct", # CORRECTED: Current model ID[reference:1]
         "speed_tier": 2,
         "uncensored": False,
         "rate_limit": {"requests": 20, "window": 60},
@@ -46,7 +46,7 @@ SOURCES = {
         "name": "Together",
         "url": "https://api.together.xyz/v1/chat/completions",
         "api_key": os.environ.get("TOGETHER_API_KEY", ""),
-        "model": "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+        "model": "meta-llama/Llama-3.3-70B-Instruct-Turbo", # CORRECTED: Official ID[reference:2]
         "speed_tier": 2,
         "uncensored": False,
         "rate_limit": {"requests": 10, "window": 60},
@@ -63,7 +63,7 @@ SOURCES = {
         "daily_limit": 5000,
     },
     # --- Uncensored Models (Hugging Face) ---
-    # Hugging Face has moved its API endpoint.
+    # CORRECTED: Updated to the new router.huggingface.co endpoint[reference:3]
     "hf_abliterated": {
         "name": "HF Abliterated",
         "url": "https://router.huggingface.co/hf-inference/models/mlabonne/Llama-3.1-70B-Instruct-abliterated/v1/chat/completions",
@@ -94,7 +94,6 @@ SOURCES = {
         "rate_limit": {"requests": 5, "window": 60},
         "daily_limit": 500,
     },
-    # KoboldAI Horde remains unchanged and is known to work.
     "horde": {
         "name": "KoboldAI Horde",
         "url": "https://aihorde.net/api/v2/generate/text/async",
