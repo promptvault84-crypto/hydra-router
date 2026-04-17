@@ -10,7 +10,6 @@
       padding: 0;
       box-sizing: border-box;
     }
-
     body {
       font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       background: #000;
@@ -22,8 +21,6 @@
       position: fixed;
       width: 100%;
     }
-
-    /* Sidebar */
     .sidebar {
       width: 260px;
       background: #0a0a0a;
@@ -34,7 +31,6 @@
       overflow-y: auto;
       flex-shrink: 0;
     }
-
     .new-chat-btn {
       background: #1a1a1a;
       border: 1px solid #3a3a3a;
@@ -48,12 +44,10 @@
       text-align: left;
       width: 100%;
     }
-
     .chat-history {
       flex: 1;
       overflow-y: auto;
     }
-
     .chat-item {
       padding: 10px 12px;
       border-radius: 8px;
@@ -69,13 +63,6 @@
       width: 100%;
       text-align: left;
     }
-
-    .chat-item:hover, .chat-item.active {
-      background: #1f1f1f;
-      color: #fff;
-    }
-
-    /* Main chat area */
     .main {
       flex: 1;
       display: flex;
@@ -83,9 +70,7 @@
       background: #000;
       min-width: 0;
       height: 100%;
-      position: relative;
     }
-
     .chat-header {
       padding: 12px 16px;
       border-bottom: 1px solid #1a1a1a;
@@ -94,15 +79,12 @@
       gap: 12px;
       flex-shrink: 0;
     }
-
     .model-selector {
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
     }
-
-    .model-category,
-    .model-dropdown {
+    select {
       background: #111;
       border: 1px solid #333;
       color: #fff;
@@ -110,9 +92,7 @@
       border-radius: 6px;
       font-size: 13px;
       cursor: pointer;
-      max-width: 140px;
     }
-
     .chat-messages {
       flex: 1;
       overflow-y: auto;
@@ -122,17 +102,14 @@
       gap: 16px;
       -webkit-overflow-scrolling: touch;
     }
-
     .message {
       display: flex;
       gap: 12px;
       max-width: 100%;
     }
-
     .message.user {
       justify-content: flex-end;
     }
-
     .message-content {
       padding: 12px 16px;
       border-radius: 18px;
@@ -141,19 +118,16 @@
       font-size: 15px;
       line-height: 1.5;
     }
-
     .message.user .message-content {
       background: #1a1a1a;
       border: 1px solid #333;
       color: #fff;
     }
-
     .message.assistant .message-content {
       background: #0e0e0e;
       border: 1px solid #2a2a2a;
       color: #eee;
     }
-
     .input-area {
       padding: 12px 16px;
       border-top: 1px solid #1a1a1a;
@@ -163,12 +137,6 @@
       flex-shrink: 0;
       background: #000;
     }
-
-    .input-actions {
-      display: flex;
-      gap: 4px;
-    }
-
     .input-actions button {
       background: none;
       border: none;
@@ -176,9 +144,7 @@
       font-size: 24px;
       cursor: pointer;
       padding: 8px 4px;
-      line-height: 1;
     }
-
     .message-input {
       flex: 1;
       background: #111;
@@ -192,9 +158,7 @@
       min-height: 48px;
       outline: none;
       font-family: inherit;
-      line-height: 1.4;
     }
-
     .send-btn {
       background: #fff;
       color: #000;
@@ -204,52 +168,22 @@
       font-weight: 600;
       font-size: 14px;
       cursor: pointer;
-      flex-shrink: 0;
     }
-
-    .file-upload {
-      display: none;
+    .file-upload { display: none; }
+    .src-info {
+      font-size: 10px;
+      color: #666;
+      margin-top: 4px;
     }
-
-    /* Mobile adjustments */
     @media (max-width: 600px) {
-      .sidebar {
-        position: absolute;
-        left: -260px;
-        top: 0;
-        bottom: 0;
-        z-index: 10;
-        transition: left 0.2s;
-        height: 100dvh;
-      }
-      .sidebar.open {
-        left: 0;
-      }
-      .chat-header {
-        padding: 10px 12px;
-      }
-      .model-category,
-      .model-dropdown {
-        padding: 6px 8px;
-        font-size: 12px;
-        max-width: 120px;
-      }
-      .input-area {
-        padding: 10px 12px;
-        padding-bottom: max(12px, env(safe-area-inset-bottom));
-      }
-      .message-input {
-        font-size: 16px; /* prevents zoom on focus */
-        padding: 10px 14px;
-      }
-      .send-btn {
-        padding: 10px 16px;
-      }
+      .sidebar { display: none; }
+      .chat-header { padding: 10px 12px; }
+      .input-area { padding: 10px 12px; padding-bottom: max(12px, env(safe-area-inset-bottom)); }
     }
   </style>
 </head>
 <body>
-  <div class="sidebar" id="sidebar">
+  <div class="sidebar">
     <button class="new-chat-btn" id="newChatBtn">+ New chat</button>
     <div class="chat-history" id="chatHistoryList"></div>
   </div>
@@ -257,20 +191,16 @@
   <div class="main">
     <div class="chat-header">
       <div class="model-selector">
-        <select class="model-category" id="modelCategorySelect" aria-label="Model category">
-          <option value="uncensored">Uncensored</option>
-          <option value="solver">Solver</option>
-        </select>
-        <select class="model-dropdown" id="modelSelect" aria-label="Model"></select>
+        <select id="modelCategorySelect"></select>
+        <select id="modelSelect"></select>
       </div>
-      <div style="flex:1"></div>
     </div>
 
     <div class="chat-messages" id="chatMessages"></div>
 
     <div class="input-area">
       <div class="input-actions">
-        <button id="fileUploadBtn" title="Upload file" type="button">📎</button>
+        <button id="fileUploadBtn" title="Upload file">📎</button>
         <input type="file" id="fileInput" class="file-upload" accept="image/*,.pdf,.txt,.doc,.docx">
       </div>
       <textarea class="message-input" id="messageInput" placeholder="Message FACEBONY..." rows="1"></textarea>
@@ -280,54 +210,83 @@
 
   <script>
     (function() {
-      // Ensure DOM is fully loaded
+      // ---------- REAL MODEL DATA (from backend SOURCES) ----------
+      const MODEL_LIST = [
+        // Solvers (uncensored: false)
+        { id: 'cerebras', name: 'Cerebras (Llama 3.1 70B)', category: 'solver' },
+        { id: 'groq', name: 'Groq (Llama 3.1 70B)', category: 'solver' },
+        { id: 'sambanova', name: 'SambaNova (Llama 3.1 70B)', category: 'solver' },
+        { id: 'together', name: 'Together (Llama 3.1 70B)', category: 'solver' },
+        { id: 'openrouter', name: 'OpenRouter (Llama 3.1 70B)', category: 'solver' },
+        // Uncensored
+        { id: 'hf_abliterated', name: 'Abliterated (Llama 3.1 70B)', category: 'uncensored' },
+        { id: 'hf_dolphin', name: 'Dolphin 2.9.4 (Llama 3.1 70B)', category: 'uncensored' },
+        { id: 'hf_hermes', name: 'Hermes 3 (Llama 3.1 70B)', category: 'uncensored' },
+        { id: 'horde', name: 'KoboldAI Horde', category: 'uncensored' }
+      ];
+
+      // DOM elements
       const chatMessages = document.getElementById('chatMessages');
       const messageInput = document.getElementById('messageInput');
       const sendBtn = document.getElementById('sendBtn');
       const newChatBtn = document.getElementById('newChatBtn');
-      const chatHistoryList = document.getElementById('chatHistoryList');
       const modelCategorySelect = document.getElementById('modelCategorySelect');
       const modelSelect = document.getElementById('modelSelect');
       const fileUploadBtn = document.getElementById('fileUploadBtn');
       const fileInput = document.getElementById('fileInput');
 
-      // Model definitions (to be expanded)
-      const models = {
-        uncensored: [
-          { id: 'uncensored-fast', name: 'Fast Uncensored' },
-          { id: 'uncensored-smart', name: 'Smart Uncensored' }
-        ],
-        solver: [
-          { id: 'solver-default', name: 'Solver Default' }
-        ]
-      };
+      // State
+      let chatHistory = [];
+      let selectedModelId = 'cerebras'; // default
+
+      // ---------- Populate category dropdown ----------
+      modelCategorySelect.innerHTML = `
+        <option value="uncensored">Uncensored</option>
+        <option value="solver">Solver</option>
+      `;
 
       function updateModelDropdown() {
         const category = modelCategorySelect.value;
-        const list = models[category] || [];
+        const filtered = MODEL_LIST.filter(m => m.category === category);
         modelSelect.innerHTML = '';
-        list.forEach(m => {
+        filtered.forEach(m => {
           const opt = document.createElement('option');
           opt.value = m.id;
           opt.textContent = m.name;
           modelSelect.appendChild(opt);
         });
+        selectedModelId = modelSelect.value;
       }
       modelCategorySelect.addEventListener('change', updateModelDropdown);
-      updateModelDropdown();
+      modelSelect.addEventListener('change', () => { selectedModelId = modelSelect.value; });
+      updateModelDropdown(); // initial
 
-      // Auto-resize textarea
-      messageInput.addEventListener('input', function() {
-        this.style.height = 'auto';
-        this.style.height = Math.min(this.scrollHeight, 120) + 'px';
-      });
+      // ---------- Chat history from localStorage ----------
+      try {
+        const saved = localStorage.getItem('facebony_current_chat');
+        if (saved) chatHistory = JSON.parse(saved);
+        // Render existing messages
+        chatHistory.forEach(msg => addMessage(msg.role, msg.content, msg.source));
+      } catch(e) {}
 
-      function addMessage(role, content) {
+      // System prompt (stored, editable later)
+      const SYSTEM_PROMPT = 'You are FACEBONY. Be brief, direct, simple. No fluff.';
+
+      function addMessage(role, content, source) {
         const msgDiv = document.createElement('div');
         msgDiv.className = `message ${role}`;
-        msgDiv.innerHTML = `<div class="message-content">${content}</div>`;
+        let html = `<div class="message-content">${escapeHtml(content)}`;
+        if (source) html += `<div class="src-info">${source}</div>`;
+        html += `</div>`;
+        msgDiv.innerHTML = html;
         chatMessages.appendChild(msgDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+
+      function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
       }
 
       async function sendMessage() {
@@ -337,7 +296,10 @@
         messageInput.value = '';
         messageInput.style.height = 'auto';
 
-        // Show typing indicator
+        // Add user message to history
+        chatHistory.push({ role: 'user', content: text });
+
+        // Typing indicator
         const typingDiv = document.createElement('div');
         typingDiv.className = 'message assistant';
         typingDiv.innerHTML = '<div class="message-content">Thinking...</div>';
@@ -346,16 +308,9 @@
         chatMessages.scrollTop = chatMessages.scrollHeight;
 
         try {
-          // Get system prompt from localStorage or default
-          let systemPrompt = localStorage.getItem('facebony_system_prompt') || '';
-          if (!systemPrompt) {
-            systemPrompt = 'You are FACEBONY, a direct and helpful AI assistant.';
-          }
-
-          // Build messages for backend (simplified for now)
           const messages = [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: text }
+            { role: 'system', content: SYSTEM_PROMPT },
+            ...chatHistory.slice(-20) // keep context manageable
           ];
 
           const response = await fetch('/api/chat', {
@@ -363,31 +318,23 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               messages: messages,
-              force_mode: 'auto',
-              max_tokens: 2048,
+              model_id: selectedModelId,
+              max_tokens: 1024,
               temperature: 0.7
             })
           });
 
           const data = await response.json();
-
-          // Remove typing indicator
           const typingEl = document.getElementById('typing-indicator');
           if (typingEl) typingEl.remove();
 
           if (data.success) {
-            const sourceInfo = data.source + (data.model ? ' | ' + data.model : '');
-            addMessage('assistant', data.content);
-            // Optionally show source as small text
-            const lastMsg = chatMessages.lastChild;
-            if (lastMsg) {
-              const srcSpan = document.createElement('div');
-              srcSpan.style.fontSize = '10px';
-              srcSpan.style.color = '#666';
-              srcSpan.style.marginTop = '4px';
-              srcSpan.textContent = sourceInfo;
-              lastMsg.querySelector('.message-content').appendChild(srcSpan);
-            }
+            const sourceInfo = `${data.source} | ${data.model || ''}`;
+            addMessage('assistant', data.content, sourceInfo);
+            chatHistory.push({ role: 'assistant', content: data.content, source: sourceInfo });
+            // Keep last 20 messages in storage
+            if (chatHistory.length > 40) chatHistory = chatHistory.slice(-40);
+            localStorage.setItem('facebony_current_chat', JSON.stringify(chatHistory));
           } else {
             addMessage('assistant', 'Error: ' + (data.error || 'Unknown error'));
           }
@@ -399,44 +346,39 @@
       }
 
       sendBtn.addEventListener('click', sendMessage);
-
       messageInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
           e.preventDefault();
           sendMessage();
         }
       });
+      messageInput.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+      });
 
       newChatBtn.addEventListener('click', () => {
         chatMessages.innerHTML = '';
-        // TODO: create new chat ID
+        chatHistory = [];
+        localStorage.removeItem('facebony_current_chat');
+        addMessage('assistant', 'New chat. Select a model and ask anything.');
       });
 
-      fileUploadBtn.addEventListener('click', () => {
-        fileInput.click();
-      });
-
+      fileUploadBtn.addEventListener('click', () => fileInput.click());
       fileInput.addEventListener('change', (e) => {
         const file = e.target.files[0];
         if (file) {
           addMessage('user', `[Uploaded: ${file.name}]`);
-          // TODO: handle file upload
           fileInput.value = '';
+          // File handling to be added later
         }
       });
 
-      // For mobile: sidebar toggle not yet implemented, but keep it hidden by default on small screens
-      // Future: add hamburger menu to open sidebar
-
-      // Load any saved system prompt
-      const savedPrompt = localStorage.getItem('facebony_system_prompt');
-      if (!savedPrompt) {
-        localStorage.setItem('facebony_system_prompt', 'You are FACEBONY, a direct and helpful AI assistant. Keep responses clear, brief, and actionable. No fluff.');
+      // Initial message
+      if (chatHistory.length === 0) {
+        addMessage('assistant', 'FACEBONY ready. Choose a model and start.');
       }
-
-      // Initial welcome message
-      addMessage('assistant', 'FACEBONY ready. Ask me anything.');
     })();
   </script>
 </body>
-          </html>
+  </html>
