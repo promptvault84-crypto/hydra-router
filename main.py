@@ -8,6 +8,9 @@ from dataclasses import dataclass, field
 from typing import Optional
 from aiohttp import web
 
+# ============================================================
+# SOURCES – All your connected AI model providers
+# ============================================================
 SOURCES = {
     "cerebras": {
         "name": "Cerebras",
@@ -101,6 +104,9 @@ SOURCES = {
     },
 }
 
+# ============================================================
+# Rate Limiting – keep exactly as before
+# ============================================================
 @dataclass
 class RateLimitTracker:
     request_times: dict = field(default_factory=lambda: defaultdict(list))
@@ -127,39 +133,9 @@ class RateLimitTracker:
 
 rate_tracker = RateLimitTracker()
 
-def classify_request(messages):
-    last_msg = messages[-1].get("content", "").lower() if messages else ""
-    standard_words = [
-        "code", "function", "algorithm", "implement", "debug", "explain",
-        "analyze", "solve", "calculate", "design", "refactor", "optimize",
-        "python", "java", "javascript", "rust", "sql", "api", "database",
-        "math", "proof", "theorem", "logic", "reason", "think", "plan",
-        "strategy", "compare", "evaluate", "structure", "class", "system",
-        "build", "create", "develop", "test", "data", "write", "help",
-        "how", "what", "why", "make", "show", "list", "sort", "search",
-        "find", "convert", "parse", "format",
-    ]
-    for word in standard_words:
-        if word in last_msg:
-            return "standard"
-    return "uncensored"
-
-def select_source(request_type):
-    candidates = []
-    for source_id, cfg in SOURCES.items():
-        if not cfg["api_key"]:
-            continue
-        if request_type == "uncensored" and not cfg["uncensored"]:
-            continue
-        if rate_tracker.can_use(source_id):
-            candidates.append((cfg["speed_tier"], source_id))
-    if not candidates:
-        if request_type == "uncensored":
-            return select_source("standard")
-        return None
-    candidates.sort(key=lambda x: x[0])
-    return candidates[0][1]
-
+# ============================================================
+# API calling functions – unchanged
+# ============================================================
 async def call_openai_compatible(source_id, messages, max_tokens=2048, temperature=0.7):
     cfg = SOURCES[source_id]
     if source_id == "horde":
@@ -268,54 +244,67 @@ async def call_horde(messages, max_tokens, temperature):
         except Exception as e:
             return {"success": False, "error": str(e)}
 
-# Old embedded HTML kept for reference but no longer used.
-# CHAT_HTML = """..."""
-
+# ============================================================
+# NEW: Manual model selection handler – NO auto‑routing
+# ============================================================
 async def handle_chat(request):
     data = await request.json()
     messages = data.get("messages", [])
-    force_mode = data.get("force_mode", "auto")
+    model_id = data.get("model_id")
     max_tokens = data.get("max_tokens", 2048)
     temperature = data.get("temperature", 0.7)
-    if force_mode == "uncensored":
-        request_type = "uncensored"
-    elif force_mode == "standard":
-        request_type = "standard"
-    else:
-        request_type = classify_request(messages)
-    attempts = 0
-    max_attempts = len(SOURCES) * 2
-    tried = set()
-    while attempts < max_attempts:
-        source_id = select_source(request_type)
-        if source_id is None:
-            if request_type == "uncensored":
-                request_type = "standard"
-                continue
-            return web.json_response({
-                "success": False,
-                "error": "All sources rate-limited. Wait 60 seconds and retry.",
-            })
-        if source_id in tried:
-            for _ in range(50):
-                rate_tracker.record_use(source_id)
-            attempts += 1
+
+    # 1. Must provide a model_id
+    if not model_id:
+        return web.json_response({
+            "success": False,
+            "error": "No model selected. Please choose a model."
+        })
+
+    # 2. Model must exist in SOURCES
+    if model_id not in SOURCES:
+        return web.json_response({
+            "success": False,
+            "error": f"Unknown model: {model_id}"
+        })
+
+    cfg = SOURCES[model_id]
+    if not cfg["api_key"]:
+        return web.json_response({
+            "success": False,
+            "error": f"Model {cfg['name']} is not configured (missing API key)."
+        })
+
+    # 3. Try up to 3 times (only for rate‑limit retries)
+    max_attempts = 3
+    for attempt in range(max_attempts):
+        if not rate_tracker.can_use(model_id):
+            await asyncio.sleep(2)
             continue
-        tried.add(source_id)
-        result = await call_openai_compatible(source_id, messages, max_tokens, temperature)
+
+        result = await call_openai_compatible(model_id, messages, max_tokens, temperature)
         if result.get("success"):
             return web.json_response(result)
+
         if result.get("error") == "rate_limited":
+            # Artificially exhaust the rate limit so can_use stays false
             for _ in range(50):
-                rate_tracker.record_use(source_id)
-        attempts += 1
+                rate_tracker.record_use(model_id)
+            await asyncio.sleep(2)
+            continue
+        else:
+            # Other error (timeout, HTTP error) – fail immediately
+            return web.json_response(result)
+
     return web.json_response({
         "success": False,
-        "error": "All sources failed. Please try again in 60 seconds.",
+        "error": f"Model {cfg['name']} is currently rate‑limited. Try again in a minute."
     })
 
+# ============================================================
+# Static frontend serving
+# ============================================================
 async def handle_index(request):
-    # Serve the new static FACEBONY frontend
     return web.FileResponse('./static/index.html')
 
 async def handle_status(request):
@@ -331,9 +320,7 @@ async def handle_status(request):
 
 def create_app():
     app = web.Application()
-    # Add static route for CSS, JS, and other assets
     app.router.add_static('/static/', path='./static', name='static')
-    # Routes
     app.router.add_get("/", handle_index)
     app.router.add_post("/api/chat", handle_chat)
     app.router.add_get("/api/status", handle_status)
@@ -342,7 +329,7 @@ def create_app():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     app = create_app()
-    print(f"FACEBONY (HYDRA upgrade) starting on port {port}")
+    print(f"FACEBONY (manual control) starting on port {port}")
     configured = [v["name"] for k, v in SOURCES.items() if v["api_key"]]
     print(f"Configured backends: {configured}")
     web.run_app(app, host="0.0.0.0", port=port)
