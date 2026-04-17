@@ -268,116 +268,8 @@ async def call_horde(messages, max_tokens, temperature):
         except Exception as e:
             return {"success": False, "error": str(e)}
 
-CHAT_HTML = """<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>HYDRA AI</title>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:#0a0a0f;color:#e0e0e0;height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
-#header{background:linear-gradient(135deg,#1a1a2e,#16213e);padding:12px 16px;border-bottom:1px solid #2a2a4a;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
-#header h1{font-size:18px;color:#00d4ff;letter-spacing:1px}
-#sys-area{padding:8px 16px;background:#111;border-bottom:1px solid #222;flex-shrink:0}
-#sys-area summary{cursor:pointer;color:#00d4ff;font-size:12px;user-select:none}
-#sys-prompt{width:100%;background:#1a1a2e;border:1px solid #333;color:#e0e0e0;padding:8px;margin-top:6px;border-radius:6px;font-size:13px;resize:vertical;min-height:50px;font-family:inherit}
-#messages{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px;-webkit-overflow-scrolling:touch}
-.msg{max-width:92%;padding:10px 14px;border-radius:14px;font-size:14px;line-height:1.55;white-space:pre-wrap;word-wrap:break-word;overflow-wrap:break-word}
-.msg.user{align-self:flex-end;background:#1a3a5c;border-bottom-right-radius:4px;color:#d0e8ff}
-.msg.assistant{align-self:flex-start;background:#1e1e30;border-bottom-left-radius:4px}
-.msg .src{font-size:10px;color:#00d4ff77;margin-top:6px;display:block}
-.msg code{background:#0d0d1a;padding:1px 5px;border-radius:3px;font-size:12.5px;font-family:'Courier New',monospace}
-.msg pre{background:#0d0d1a;padding:10px;border-radius:6px;overflow-x:auto;margin:8px 0;font-size:12.5px}
-.msg pre code{padding:0;background:none}
-#input-area{padding:10px 12px;background:#0f0f15;border-top:1px solid #2a2a4a;display:flex;gap:8px;flex-shrink:0;align-items:flex-end}
-#user-input{flex:1;background:#1a1a2e;border:1px solid #333;color:#e0e0e0;padding:10px 14px;border-radius:20px;font-size:14px;outline:none;resize:none;max-height:120px;min-height:42px;font-family:inherit;line-height:1.4}
-#user-input:focus{border-color:#00d4ff}
-#send-btn{background:#00d4ff;color:#000;border:none;border-radius:50%;width:42px;height:42px;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:bold}
-#send-btn:disabled{opacity:0.3;cursor:not-allowed}
-.typing{color:#00d4ff88;font-style:italic;font-size:13px;padding:4px 0}
-#mode-btn{background:none;border:1px solid #00d4ff;color:#00d4ff;padding:4px 10px;border-radius:12px;font-size:11px;cursor:pointer;white-space:nowrap}
-#mode-btn.u{border-color:#ff4444;color:#ff4444}
-#clear-btn{background:none;border:1px solid #444;color:#888;padding:4px 8px;border-radius:12px;font-size:11px;cursor:pointer}
-</style>
-</head>
-<body>
-<div id="header">
-<h1>HYDRA AI</h1>
-<div style="display:flex;gap:6px;align-items:center">
-<button id="clear-btn" onclick="clearChat()">Clear</button>
-<button id="mode-btn" onclick="toggleMode()">AUTO</button>
-</div>
-</div>
-<div id="sys-area">
-<details>
-<summary>System Prompt (tap to edit)</summary>
-<textarea id="sys-prompt">You are an advanced AI assistant with expert-level capabilities in reasoning, analysis, coding, and creative problem-solving. Provide direct, complete, and thorough responses. Think step-by-step through complex problems. Write complete, functional, well-commented code when asked.</textarea>
-</details>
-</div>
-<div id="messages"></div>
-<div id="input-area">
-<textarea id="user-input" rows="1" placeholder="Ask anything..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg()}"></textarea>
-<button id="send-btn" onclick="sendMsg()">&#9654;</button>
-</div>
-<script>
-let hist=[];
-let mode="auto";
-try{let s=localStorage.getItem("h_hist");if(s){hist=JSON.parse(s);hist.forEach(m=>addUI(m.role,m.content,m.source))}}catch(e){}
-try{let sp=localStorage.getItem("h_sys");if(sp)document.getElementById("sys-prompt").value=sp}catch(e){}
-document.getElementById("sys-prompt").addEventListener("input",function(){localStorage.setItem("h_sys",this.value)});
-function toggleMode(){
-let b=document.getElementById("mode-btn");
-if(mode==="auto"){mode="uncensored";b.textContent="UNCENSORED";b.className="u"}
-else if(mode==="uncensored"){mode="standard";b.textContent="FAST";b.className=""}
-else{mode="auto";b.textContent="AUTO";b.className=""}
-}
-function clearChat(){if(confirm("Clear all messages?")){hist=[];localStorage.removeItem("h_hist");document.getElementById("messages").innerHTML=""}}
-function addUI(role,content,source){
-let c=document.getElementById("messages");
-let d=document.createElement("div");
-d.className="msg "+role;
-let h=content.replace(/```([\\s\\S]*?)```/g,'<pre><code>$1</code></pre>').replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\\*\\*(.*?)\\*\\*/g,'<strong>$1</strong>');
-d.innerHTML=h;
-if(source&&role==="assistant")d.innerHTML+='<span class="src">'+source+'</span>';
-c.appendChild(d);
-c.scrollTop=c.scrollHeight;
-}
-async function sendMsg(){
-let inp=document.getElementById("user-input");
-let btn=document.getElementById("send-btn");
-let msg=inp.value.trim();
-if(!msg)return;
-inp.value="";inp.style.height="auto";
-btn.disabled=true;
-addUI("user",msg);
-hist.push({role:"user",content:msg});
-let td=document.createElement("div");
-td.className="typing";td.id="typing";td.textContent="Thinking...";
-document.getElementById("messages").appendChild(td);
-document.getElementById("messages").scrollTop=document.getElementById("messages").scrollHeight;
-try{
-let sp=document.getElementById("sys-prompt").value;
-let msgs=[{role:"system",content:sp}];
-let recent=hist.slice(-20);
-msgs.push(...recent.map(m=>({role:m.role,content:m.content})));
-let r=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},
-body:JSON.stringify({messages:msgs,force_mode:mode,max_tokens:2048,temperature:0.7})});
-let data=await r.json();
-let el=document.getElementById("typing");if(el)el.remove();
-if(data.success){
-let src=data.source+(data.model?" | "+data.model:"");
-addUI("assistant",data.content,src);
-hist.push({role:"assistant",content:data.content,source:src});
-localStorage.setItem("h_hist",JSON.stringify(hist));
-}else{addUI("assistant","Error: "+data.error)}
-}catch(e){let el=document.getElementById("typing");if(el)el.remove();addUI("assistant","Connection error: "+e.message)}
-btn.disabled=false;inp.focus();
-}
-document.getElementById("user-input").addEventListener("input",function(){this.style.height="auto";this.style.height=Math.min(this.scrollHeight,120)+"px"});
-</script>
-</body>
-</html>"""
+# Old embedded HTML kept for reference but no longer used.
+# CHAT_HTML = """..."""
 
 async def handle_chat(request):
     data = await request.json()
@@ -423,7 +315,8 @@ async def handle_chat(request):
     })
 
 async def handle_index(request):
-    return web.Response(text=CHAT_HTML, content_type="text/html")
+    # Serve the new static FACEBONY frontend
+    return web.FileResponse('./static/index.html')
 
 async def handle_status(request):
     status = {}
@@ -438,6 +331,9 @@ async def handle_status(request):
 
 def create_app():
     app = web.Application()
+    # Add static route for CSS, JS, and other assets
+    app.router.add_static('/static/', path='./static', name='static')
+    # Routes
     app.router.add_get("/", handle_index)
     app.router.add_post("/api/chat", handle_chat)
     app.router.add_get("/api/status", handle_status)
@@ -446,7 +342,7 @@ def create_app():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     app = create_app()
-    print(f"HYDRA starting on port {port}")
+    print(f"FACEBONY (HYDRA upgrade) starting on port {port}")
     configured = [v["name"] for k, v in SOURCES.items() if v["api_key"]]
     print(f"Configured backends: {configured}")
     web.run_app(app, host="0.0.0.0", port=port)
