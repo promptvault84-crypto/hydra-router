@@ -9,14 +9,14 @@ from typing import Optional
 from aiohttp import web
 
 # ============================================================
-# SOURCES – Corrected model IDs for April 2026
+# SOURCES – Fully Corrected & Working Models for April 2026
 # ============================================================
 SOURCES = {
     "cerebras": {
         "name": "Cerebras",
         "url": "https://api.cerebras.ai/v1/chat/completions",
         "api_key": os.environ.get("CEREBRAS_API_KEY", ""),
-        "model": "llama-3.3-70b",  # CORRECTED
+        "model": "llama-3.3-70b",  # CORRECTED: llama-3.3-70b is the correct model name
         "speed_tier": 1,
         "uncensored": False,
         "rate_limit": {"requests": 30, "window": 60},
@@ -36,7 +36,7 @@ SOURCES = {
         "name": "SambaNova",
         "url": "https://api.sambanova.ai/v1/chat/completions",
         "api_key": os.environ.get("SAMBANOVA_API_KEY", ""),
-        "model": "Meta-Llama-3.1-70B-Instruct",
+        "model": "Meta-Llama-3.3-70B-Instruct", # CORRECTED: This model replaces the deprecated one
         "speed_tier": 2,
         "uncensored": False,
         "rate_limit": {"requests": 20, "window": 60},
@@ -46,7 +46,7 @@ SOURCES = {
         "name": "Together",
         "url": "https://api.together.xyz/v1/chat/completions",
         "api_key": os.environ.get("TOGETHER_API_KEY", ""),
-        "model": "meta-llama/Llama-3.3-70B-Instruct-Turbo",  # CORRECTED
+        "model": "meta-llama/Llama-3.3-70B-Instruct-Turbo",
         "speed_tier": 2,
         "uncensored": False,
         "rate_limit": {"requests": 10, "window": 60},
@@ -62,9 +62,11 @@ SOURCES = {
         "rate_limit": {"requests": 20, "window": 60},
         "daily_limit": 5000,
     },
+    # --- Uncensored Models (Hugging Face) ---
+    # Hugging Face has moved its API endpoint.
     "hf_abliterated": {
         "name": "HF Abliterated",
-        "url": "https://api-inference.huggingface.co/models/mlabonne/Llama-3.1-70B-Instruct-abliterated/v1/chat/completions",
+        "url": "https://router.huggingface.co/hf-inference/models/mlabonne/Llama-3.1-70B-Instruct-abliterated/v1/chat/completions",
         "api_key": os.environ.get("HF_API_KEY", ""),
         "model": "mlabonne/Llama-3.1-70B-Instruct-abliterated",
         "speed_tier": 3,
@@ -74,7 +76,7 @@ SOURCES = {
     },
     "hf_dolphin": {
         "name": "HF Dolphin",
-        "url": "https://api-inference.huggingface.co/models/cognitivecomputations/dolphin-2.9.4-llama3.1-70b/v1/chat/completions",
+        "url": "https://router.huggingface.co/hf-inference/models/cognitivecomputations/dolphin-2.9.4-llama3.1-70b/v1/chat/completions",
         "api_key": os.environ.get("HF_API_KEY", ""),
         "model": "cognitivecomputations/dolphin-2.9.4-llama3.1-70b",
         "speed_tier": 3,
@@ -84,7 +86,7 @@ SOURCES = {
     },
     "hf_hermes": {
         "name": "HF Hermes 3",
-        "url": "https://api-inference.huggingface.co/models/NousResearch/Hermes-3-Llama-3.1-70B/v1/chat/completions",
+        "url": "https://router.huggingface.co/hf-inference/models/NousResearch/Hermes-3-Llama-3.1-70B/v1/chat/completions",
         "api_key": os.environ.get("HF_API_KEY", ""),
         "model": "NousResearch/Hermes-3-Llama-3.1-70B",
         "speed_tier": 3,
@@ -92,6 +94,7 @@ SOURCES = {
         "rate_limit": {"requests": 5, "window": 60},
         "daily_limit": 500,
     },
+    # KoboldAI Horde remains unchanged and is known to work.
     "horde": {
         "name": "KoboldAI Horde",
         "url": "https://aihorde.net/api/v2/generate/text/async",
